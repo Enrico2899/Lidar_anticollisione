@@ -21,6 +21,10 @@ evitare la collisione con un altro carroponte che si muove trasversalmente.
 - Formato pacchetto ricavato da ouster-sdk (`ouster_core/src/parsing.cpp`) e
   verificato su un pacchetto reale OS0-128 fw 3.2 (`tests/data/`).
 
+- Pagina di diagnostica locale (`web_ui.py` + `static/index.html`, solo stdlib,
+  nessuna CDN, 127.0.0.1:8080), solo visualizzazione. `PLC_ENABLED = False`
+  in `config.py` per provare il solo sensore.
+
 ## Stato
 Implementato e testato con PLC simulato (snap7 server) + `tools/simula_sensore.py`.
 Da fare: validazione con sensore e PLC reali; layout DB e logica PLC in

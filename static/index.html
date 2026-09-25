@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anticollisione LiDAR</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #11151a; --panel: #1a2027; --line: #2a323c; --text: #e6e9ed; --muted: #8a96a3;
+    --ok: #1f9d55; --ok-bg: #123a26; --alarm: #d64545; --alarm-bg: #4a1818;
+    --warn: #d69e2e; --warn-bg: #43341a; --off: #5b6572; --off-bg: #262d35;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.4 "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+           padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 18px; margin: 0 16px 0 0; font-weight: 600; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px;
+          border-radius: 999px; background: var(--off-bg); font-weight: 600; font-size: 13px; }
+  .pill::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--off); }
+  .pill.ok { background: var(--ok-bg); } .pill.ok::before { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .pill.alarm { background: var(--alarm-bg); } .pill.alarm::before { background: var(--alarm); box-shadow: 0 0 8px var(--alarm); }
+  .pill.warn { background: var(--warn-bg); } .pill.warn::before { background: var(--warn); }
+  .stats { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--text); font-weight: 600; }
+  main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+  #banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 8px;
+            background: var(--alarm-bg); border: 1px solid var(--alarm); font-weight: 600; }
+  #zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .zone { border-radius: 12px; padding: 18px; border: 2px solid var(--off); background: var(--off-bg);
+          transition: background .15s, border-color .15s; }
+  .zone.free { border-color: var(--ok); background: var(--ok-bg); }
+  .zone.occupied { border-color: var(--alarm); background: var(--alarm-bg); }
+  .zone.invalid { border-color: var(--warn); background: var(--warn-bg); }
+  .zone .name { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+  .zone .sub { color: var(--muted); font-size: 12px; }
+  .zone .state { font-size: 28px; font-weight: 800; margin: 14px 0 6px; }
+  .zone .dist { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .zone dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 12px 0 0;
+             font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .zone dd { margin: 0; color: var(--text); text-align: right; }
+  section { margin-top: 24px; background: var(--panel); border: 1px solid var(--line);
+            border-radius: 10px; padding: 14px 16px; }
+  section h2 { font-size: 14px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase;
+               letter-spacing: .8px; font-weight: 600; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } .stats { margin-left: 0; } }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .tag { padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .tag.ok { background: var(--ok-bg); color: #6fe0a0; }
+  .tag.alarm { background: var(--alarm-bg); color: #ff9a9a; }
+  .tag.warn { background: var(--warn-bg); color: #f5cf7a; }
+  .tag.off { background: var(--off-bg); color: var(--muted); }
+  #faults { margin: 0; padding-left: 18px; color: #f5cf7a; }
+  #faults li.none { list-style: none; margin-left: -18px; color: var(--muted); }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; font-variant-numeric: tabular-nums; }
+  .kv span:nth-child(odd) { color: var(--muted); }
+  code { font-family: Consolas, monospace; font-size: 12px; word-break: break-all; }
+  button { background: var(--off-bg); color: var(--text); border: 1px solid var(--line);
+           border-radius: 6px; padding: 2px 10px; cursor: pointer; font-size: 12px; margin-left: 8px; }
+  #events { max-height: 260px; overflow-y: auto; font-family: Consolas, monospace; font-size: 12px; }
+  #events div { padding: 2px 0; border-bottom: 1px solid var(--line); }
+  #events .t { color: var(--muted); margin-right: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Anticollisione LiDAR</h1>
+  <span class="pill" id="p-sensor">Sensore</span>
+  <span class="pill" id="p-config">Configurazione</span>
+  <span class="pill" id="p-plc">PLC</span>
+  <span class="stats">
+    Pacchetti <b id="s-rate">–</b> Hz · età <b id="s-age">–</b> ms · frame <b id="s-frame">–</b> · totale <b id="s-count">–</b>
+  </span>
+</header>
+<main>
+  <div id="banner">Applicazione non raggiungibile: main.py è in esecuzione?</div>
+  <div id="zones"></div>
+
+  <div class="cols">
+    <section>
+      <h2>Anomalie</h2>
+      <ul id="faults"></ul>
+    </section>
+    <section>
+      <h2>Sensore</h2>
+      <div class="kv">
+        <span>Numero di serie</span><span id="i-serial">–</span>
+        <span>init_id</span><span id="i-init">–</span>
+        <span>Alert flags</span><span id="i-alert">–</span>
+        <span>Hash zone live</span><span><code id="i-hash">–</code><button id="copy-hash">Copia</button></span>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Tutte le zone live ricevute dal sensore</h2>
+    <table>
+      <thead><tr>
+        <th>ID zona</th><th>In config.py</th><th>Modo</th><th>Stato</th><th>Frame in allarme</th>
+        <th>Punti</th><th>Min [m]</th><th>Media [m]</th><th>Max [m]</th><th>Occlusi</th><th>Invalidi</th><th>Error flags</th>
+      </tr></thead>
+      <tbody id="live"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Eventi (da quando è aperta la pagina)</h2>
+    <div id="events"></div>
+  </section>
+</main>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const POLL_MS = 200;
+const TRIGGER_MODE = { 1: "Occupancy", 2: "Vacancy" };
+
+let prev = null;          // ultimo stato, per gli eventi e il calcolo dei pacchetti/s
+let rateSamples = [];     // [tempo, packet_count]
+let reachable = true;
+
+function m(mm) { return (mm / 1000).toFixed(2); }
+function hex(v) { return "0x" + v.toString(16).toUpperCase().padStart(2, "0"); }
+
+function setPill(el, cls, text) {
+  el.className = "pill " + cls;
+  el.textContent = text;
+}
+
+function zoneState(z) {
+  if (!z.live) return ["invalid", "NON PRESENTE"];
+  if (!z.valid) return ["invalid", "NON VALIDA"];
+  return z.free ? ["free", "LIBERA"] : ["occupied", "OCCUPATA"];
+}
+
+function addEvent(text) {
+  const row = document.createElement("div");
+  row.innerHTML = `<span class="t">${new Date().toLocaleTimeString()}</span>`;
+  row.append(text);
+  $("events").prepend(row);
+  while ($("events").childElementCount > 200) $("events").lastChild.remove();
+}
+
+function renderZones(st) {
+  const box = $("zones");
+  if (box.childElementCount !== st.zones.length) {
+    box.innerHTML = st.zones.map((z) => `
+      <div class="zone" id="z${z.index}">
+        <div class="name">${z.name}</div>
+        <div class="sub">ID zona ${z.zone_id} · Zone_Free[${z.index}]</div>
+        <div class="state"></div>
+        <div class="dist"></div>
+        <dl></dl>
+      </div>`).join("");
+  }
+  for (const z of st.zones) {
+    const el = $("z" + z.index);
+    const [cls, label] = zoneState(z);
+    el.className = "zone " + cls;
+    el.querySelector(".state").textContent = label;
+    const d = z.details;
+    el.querySelector(".dist").textContent =
+      d && d.point_count > 0 ? `distanza minima ${m(d.min_range_mm)} m` : " ";
+    el.querySelector("dl").innerHTML = d ? `
+      <dt>Punti nella zona</dt><dd>${d.point_count}</dd>
+      <dt>Frame in allarme</dt><dd>${d.triggered_frames}</dd>
+      <dt>Occlusi / invalidi</dt><dd>${d.occlusion_count} / ${d.invalid_count}</dd>
+      <dt>Error flags</dt><dd>${hex(d.error_flags)}</dd>` : "<dt>zona non tra le live del sensore</dt><dd></dd>";
+  }
+}
+
+function renderLive(st) {
+  const zones = st.sensor ? st.sensor.live_zones : [];
+  $("live").innerHTML = zones.length ? zones.map((z) => `
+    <tr>
+      <td>${z.zone_id}</td>
+      <td>${z.configured ? '<span class="tag ok">sì</span>' : '<span class="tag off">no</span>'}</td>
+      <td>${TRIGGER_MODE[z.trigger_type] || z.trigger_type}</td>
+      <td>${z.triggered ? '<span class="tag alarm">ALLARME</span>' : '<span class="tag ok">ok</span>'}</td>
+      <td>${z.triggered_frames}</td><td>${z.point_count}</td>
+      <td>${m(z.min_range_mm)}</td><td>${m(z.mean_range_mm)}</td><td>${m(z.max_range_mm)}</td>
+      <td>${z.occlusion_count}</td><td>${z.invalid_count}</td>
+      <td>${z.error_flags ? `<span class="tag warn">${hex(z.error_flags)}</span>` : hex(0)}</td>
+    </tr>`).join("") : '<tr><td colspan="12">nessun pacchetto ricevuto</td></tr>';
+}
+
+function renderHeader(st) {
+  setPill($("p-sensor"), st.sensor_ok ? "ok" : "alarm", st.sensor_ok ? "Sensore OK" : "Sensore MUTO");
+  setPill($("p-config"), st.config_ok ? "ok" : "warn", st.config_ok ? "Configurazione OK" : "Configurazione KO");
+  const p = st.plc;
+  if (!p.enabled) setPill($("p-plc"), "", "PLC disabilitato");
+  else if (!p.connected) setPill($("p-plc"), "alarm", `PLC ${p.ip} non connesso`);
+  else setPill($("p-plc"), p.heartbeat_ok ? "ok" : "warn",
+               `PLC DB${p.db} · ${p.heartbeat_ok ? "heartbeat OK" : "heartbeat FERMO"}`);
+
+  const now = performance.now();
+  rateSamples.push([now, st.packet_count]);
+  rateSamples = rateSamples.filter(([t]) => now - t <= 2000);
+  const [t0, c0] = rateSamples[0];
+  const dc = (st.packet_count - c0 + 2 ** 31) % 2 ** 31;
+  $("s-rate").textContent = now - t0 > 500 ? (dc * 1000 / (now - t0)).toFixed(1) : "–";
+  $("s-age").textContent = st.sensor ? st.packet_age_ms : "–";
+  $("s-frame").textContent = st.sensor ? st.sensor.frame_id : "–";
+  $("s-count").textContent = st.packet_count;
+
+  $("faults").innerHTML = st.faults.length
+    ? st.faults.map((f) => `<li>${f}</li>`).join("")
+    : '<li class="none">Nessuna anomalia</li>';
+
+  const s = st.sensor;
+  $("i-serial").textContent = s ? s.serial : "–";
+  $("i-init").textContent = s ? s.init_id : "–";
+  $("i-alert").textContent = s ? hex(s.alert_flags) : "–";
+  $("i-hash").textContent = s ? s.zoneset_hash : "–";
+}
+
+function logEvents(st) {
+  if (!prev) { addEvent("Pagina collegata all'applicazione"); return; }
+  if (prev.sensor_ok !== st.sensor_ok) addEvent(st.sensor_ok ? "Sensore OK" : "Sensore MUTO");
+  if (prev.config_ok !== st.config_ok) addEvent(st.config_ok ? "Configurazione OK" : "Configurazione KO");
+  st.zones.forEach((z, i) => {
+    const before = prev.zones[i];
+    if (before && zoneState(before)[1] !== zoneState(z)[1]) {
+      const d = z.details;
+      const extra = d && d.point_count > 0 ? ` (${d.point_count} punti, min ${m(d.min_range_mm)} m)` : "";
+      addEvent(`Zona ${z.name}: ${zoneState(z)[1]}${extra}`);
+    }
+  });
+  if (prev.sensor && st.sensor && prev.sensor.init_id !== st.sensor.init_id) addEvent("Sensore riavviato (init_id cambiato)");
+  if (prev.sensor && st.sensor && prev.sensor.zoneset_hash !== st.sensor.zoneset_hash) addEvent("Set di zone modificato sul sensore");
+}
+
+async function poll() {
+  try {
+    const resp = await fetch("/api/stato", { cache: "no-store" });
+    const st = await resp.json();
+    if (!reachable) addEvent("Applicazione di nuovo raggiungibile");
+    reachable = true;
+    $("banner").style.display = "none";
+    if (st.zones) {
+      renderHeader(st);
+      renderZones(st);
+      renderLive(st);
+      logEvents(st);
+      prev = st;
+    }
+  } catch (e) {
+    if (reachable) addEvent("Applicazione non raggiungibile");
+    reachable = false;
+    $("banner").style.display = "block";
+  }
+  setTimeout(poll, POLL_MS);
+}
+
+$("copy-hash").addEventListener("click", () => {
+  const h = $("i-hash").textContent;
+  if (h && h !== "–") navigator.clipboard.writeText(h).catch(() => {});
+});
+poll();
+</script>
+</body>
+</html>

@@ -47,6 +47,9 @@ ZONES: list[tuple[str, int]] = [
 ERROR_FLAGS_BLOCK = True
 
 # --- PLC Siemens S7-1500 ---
+# False = nessuna comunicazione col PLC (prove del solo sensore, risultati
+# visibili nella pagina web e nel log).
+PLC_ENABLED = True
 PLC_IP = "192.168.1.10"
 PLC_RACK = 0
 PLC_SLOT = 1
@@ -62,6 +65,11 @@ PLC_HEARTBEAT_TIMEOUT_S = 1.0
 
 # Attesa tra un tentativo di riconnessione al PLC e il successivo.
 PLC_RECONNECT_DELAY_S = 1.0
+
+# --- Pagina web di diagnostica ---
+# Stato live di sensore/zone/PLC su http://127.0.0.1:<porta> (solo questo PC).
+WEB_UI_ENABLED = True
+WEB_UI_PORT = 8080
 
 # --- Varie ---
 SENSOR_HTTP_CHECK = True       # all'avvio legge firmware/config/zone live via HTTP (solo diagnostica)

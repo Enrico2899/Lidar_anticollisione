@@ -135,6 +135,28 @@ avviarla come servizio (es. NSSM su Windows, systemd su Linux) con riavvio
 automatico. Verificare che il firewall lasci passare UDP sulla porta
 `ZM_UDP_PORT`.
 
+## Pagina di diagnostica
+
+Con l'app avviata, aprire **http://127.0.0.1:8080** sul PC (solo locale,
+nessuna dipendenza esterna, funziona senza internet). Mostra in tempo reale:
+
+- stato di sensore, configurazione e PLC, pacchetti al secondo ed età
+  dell'ultimo pacchetto;
+- un riquadro per ogni zona di `config.py` (verde LIBERA, rosso OCCUPATA,
+  giallo NON VALIDA/NON PRESENTE) con distanza minima e numero di punti;
+- la tabella di **tutte** le zone live ricevute dal sensore, anche quelle non
+  in `config.py` (utile per scoprire gli ID delle zone);
+- anomalie in corso, hash del set di zone (pulsante "Copia") ed elenco eventi.
+
+La pagina è solo di visualizzazione. Porta e attivazione in `config.py`
+(`WEB_UI_PORT`, `WEB_UI_ENABLED`).
+
+## Prova del solo sensore (senza PLC)
+
+In `config.py` mettere `PLC_ENABLED = False`, avviare `python main.py` e
+aprire la pagina di diagnostica: si vede subito se i pacchetti arrivano e
+come reagiscono le zone. Ricordarsi di rimettere `True` per l'uso reale.
+
 ## Prove senza sensore
 
 ```bash
@@ -159,6 +181,8 @@ zm_packet.py       parsing del pacchetto UDP Zone Monitor (680 byte, CRC64)
 zone_logic.py      valutazione fail-safe delle zone -> immagine da scrivere
 plc_link.py        layout del DB, scrittura snap7, lettura heartbeat PLC
 sensor_http.py     check diagnostico del sensore via HTTP all'avvio
+web_ui.py          pagina di diagnostica (server HTTP locale + stato JSON)
+static/index.html  pagina di diagnostica (HTML/CSS/JS, nessuna CDN)
 main.py            loop principale
 tools/simula_sensore.py   simulatore del sensore per prove al banco
 ```

@@ -60,6 +60,10 @@ class ZoneEvaluator:
         self._packet_count = 0
         self._bad_packet_times: list[float] = []
 
+    @property
+    def last_packet(self) -> ZmPacket | None:
+        return self._last
+
     # --- ingresso dati ---
 
     def on_packet(self, pkt: ZmPacket, now: float) -> None:
