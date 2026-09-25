@@ -128,6 +128,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
+Su Windows si può avviare anche con **doppio click su `avvia.bat`**: usa il
+Python del `venv` se presente, apre la pagina di diagnostica nel browser e
+lascia la finestra aperta a fine esecuzione per leggere eventuali errori. Per
+fermare l'app: Ctrl+C nella finestra (alla domanda "Terminare il processo
+batch?" rispondere S).
+
 Log su console e in `lidar_anticollisione.log` (rotazione 5 × 5 MB): vengono
 registrati solo i cambi di stato (zona libera/occupata, sensore perso, heartbeat
 PLC fermo, riavvio sensore, modifica delle zone). Sul PC a bordo conviene
@@ -184,5 +190,6 @@ sensor_http.py     check diagnostico del sensore via HTTP all'avvio
 web_ui.py          pagina di diagnostica (server HTTP locale + stato JSON)
 static/index.html  pagina di diagnostica (HTML/CSS/JS, nessuna CDN)
 main.py            loop principale
+avvia.bat          avvio con doppio click su Windows
 tools/simula_sensore.py   simulatore del sensore per prove al banco
 ```
