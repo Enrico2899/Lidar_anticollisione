@@ -1,0 +1,5 @@
+# Comunicazione col PLC Siemens (protocollo S7)
+python-snap7>=2.0
+
+# Solo per i test
+pytest>=8.0
