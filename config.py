@@ -49,7 +49,7 @@ ERROR_FLAGS_BLOCK = True
 # --- PLC Siemens S7-1500 ---
 # False = nessuna comunicazione col PLC (prove del solo sensore, risultati
 # visibili nella pagina web e nel log).
-PLC_ENABLED = True
+PLC_ENABLED = False
 PLC_IP = "192.168.1.10"
 PLC_RACK = 0
 PLC_SLOT = 1
