@@ -7,6 +7,12 @@ stato delle zone in un DB del PLC **Siemens S7-1500F** (python-snap7), per
 evitare la collisione con un altro carroponte che si muove trasversalmente.
 
 ## Decisioni prese (da rispettare)
+- **Non è una funzione safety**: è un livello AGGIUNTIVO. L'anticollisione
+  principale è fatta con encoder safety dei 2 carroponti + sensori di
+  posizione nella zona di collisione (lato PLC F). Il LiDAR (in realtà un
+  OS-1-128, fw 3.2.0, Rev 07, S/N 122313000226) serve come preallarme /
+  rallentamento / rilevamento ostacoli generici; come reagire a un guasto del
+  LiDAR (warning vs stop) lo decide la logica PLC.
 - Lo stop del movimento lo decide il **PLC**; il PC fornisce solo consensi.
 - **Fail-safe**: il PC scrive `Zone_Free[i]` = 1 solo se zona libera E misura
   valida; ogni anomalia (sensore muto, zona non live, hash zone diverso,
