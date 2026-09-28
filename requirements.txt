@@ -3,3 +3,6 @@ python-snap7>=2.0
 
 # Solo per i test
 pytest>=8.0
+
+# Solo per tools/crea_zone.py (creazione dello zone set da caricare sul sensore)
+# ouster-sdk>=0.16

@@ -33,6 +33,24 @@ consentito".
 > considerata nella valutazione dei rischi come misura aggiuntiva, non come
 > funzione di sicurezza certificata.
 
+## Creazione delle zone (zone set)
+
+Le zone sono volumi 3D (file STL in metri, sistema di riferimento del
+sensore) raccolti in un file `.zip` con i metadati (`metadata.json`: ID,
+etichetta, modalità, punti e frame minimi, zone live all'accensione).
+
+`tools/crea_zone.py` genera zone a parallelepipedo definite in cima al file,
+senza CAD (richiede `pip install ouster-sdk`):
+
+```bash
+python tools/crea_zone.py                          # crea zone_set/0.stl, 1.stl, zone_set.zip
+python tools/crea_zone.py --upload 172.16.20.154   # crea, carica, applica e rende live le zone
+```
+
+In `zone_set/` c'è già uno zone set **di prova**: zona 0 "davanti" e zona 1
+"dietro" il sensore, da 1 a 4 m, larghe 3 m, da 0.7 m sotto a 1.5 m sopra il
+sensore. Lo zip si può caricare anche dalla pagina web del sensore.
+
 ## Configurazione del sensore (app web Ouster)
 
 1. Definire le zone (es. SINISTRA / CENTRO / DESTRA), in modalità
@@ -192,4 +210,6 @@ static/index.html  pagina di diagnostica (HTML/CSS/JS, nessuna CDN)
 main.py            loop principale
 avvia.bat          avvio con doppio click su Windows
 tools/simula_sensore.py   simulatore del sensore per prove al banco
+tools/crea_zone.py        crea lo zone set (STL + metadata.json in uno zip)
+zone_set/                 zone set di prova generato da crea_zone.py
 ```

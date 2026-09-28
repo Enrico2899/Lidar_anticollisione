@@ -36,10 +36,10 @@ EXPECTED_ZONESET_HASH: str | None = None
 # (Zone_Free[0], Zone_Free[1], ...), lo `zone_id` è l'ID della zona definita
 # nell'app di configurazione del sensore (deve essere tra le zone "live").
 # Max 16 zone (limite del sensore sulle zone live).
+# Le zone di prova generate da tools/crea_zone.py sono 0 = davanti, 1 = dietro.
 ZONES: list[tuple[str, int]] = [
-    ("SINISTRA", 0),
-    ("CENTRO", 1),
-    ("DESTRA", 2),
+    ("DAVANTI", 0),
+    ("DIETRO", 1),
 ]
 
 # Se True, una zona con error_flags != 0 (dati mancanti, pixel a bassa

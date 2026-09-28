@@ -1,0 +1,86 @@
+solid zona_1
+  facet normal -1 0 0
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -4.0000 -1.5000 1.5000
+      vertex -4.0000 1.5000 1.5000
+    endloop
+  endfacet
+  facet normal -1 0 0
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -4.0000 1.5000 1.5000
+      vertex -4.0000 1.5000 -0.7000
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex -1.0000 -1.5000 -0.7000
+      vertex -1.0000 1.5000 -0.7000
+      vertex -1.0000 1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 1 0 0
+    outer loop
+      vertex -1.0000 -1.5000 -0.7000
+      vertex -1.0000 1.5000 1.5000
+      vertex -1.0000 -1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -1.0000 -1.5000 -0.7000
+      vertex -1.0000 -1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 0 -1 0
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -1.0000 -1.5000 1.5000
+      vertex -4.0000 -1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex -4.0000 1.5000 -0.7000
+      vertex -4.0000 1.5000 1.5000
+      vertex -1.0000 1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 0 1 0
+    outer loop
+      vertex -4.0000 1.5000 -0.7000
+      vertex -1.0000 1.5000 1.5000
+      vertex -1.0000 1.5000 -0.7000
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -4.0000 1.5000 -0.7000
+      vertex -1.0000 1.5000 -0.7000
+    endloop
+  endfacet
+  facet normal 0 0 -1
+    outer loop
+      vertex -4.0000 -1.5000 -0.7000
+      vertex -1.0000 1.5000 -0.7000
+      vertex -1.0000 -1.5000 -0.7000
+    endloop
+  endfacet
+  facet normal 0 0 1
+    outer loop
+      vertex -4.0000 -1.5000 1.5000
+      vertex -1.0000 -1.5000 1.5000
+      vertex -1.0000 1.5000 1.5000
+    endloop
+  endfacet
+  facet normal 0 0 1
+    outer loop
+      vertex -4.0000 -1.5000 1.5000
+      vertex -1.0000 1.5000 1.5000
+      vertex -4.0000 1.5000 1.5000
+    endloop
+  endfacet
+endsolid zona_1
