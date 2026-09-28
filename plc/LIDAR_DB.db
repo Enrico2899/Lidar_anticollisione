@@ -1,0 +1,29 @@
+DATA_BLOCK "LIDAR_DB"
+TITLE = Scambio dati con l'applicazione LiDAR anticollisione (PC)
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+NON_RETAIN
+// DB NON ottimizzato: gli offset devono restare quelli di plc_link.py.
+// Numero del DB = PLC_DB_NUMBER in config.py. Dimensione totale 540 byte.
+   STRUCT
+      PLC_Heartbeat : DInt;   // 0.0  scritto dal PLC (FB_LidarAnticollisione)
+      PC_Heartbeat : DInt;   // 4.0  scritto dal PC, +1 ogni 20 ms
+      System_OK : Bool;   // 8.0  Sensor_OK AND Config_OK
+      Sensor_OK : Bool;   // 8.1  pacchetti del sensore freschi
+      Config_OK : Bool;   // 8.2  zone configurate tutte live
+      PLC_Heartbeat_OK : Bool;   // 8.3  il PC vede cambiare PLC_Heartbeat
+      Sensor_Alert_Flags : Byte;   // 9.0
+      Zone_Free : Array[0..15] of Bool;   // 10.0 1 = zona libera e misura valida
+      Zone_Triggered : Array[0..15] of Bool;   // 12.0 1 = zona in allarme (diagnostica)
+      Zone_Valid : Array[0..15] of Bool;   // 14.0 1 = misura valida (diagnostica)
+      ZM_Packet_Count : DInt;   // 16.0
+      Sensor_Frame_Id : DInt;   // 20.0
+      Packet_Age_ms : Int;   // 24.0
+      Fault_Code : Word;   // 26.0 vedi README (bit0..bit6)
+      Zone : Array[0..15] of "LIDAR_ZoneData";   // 28.0 dettagli per zona
+   END_STRUCT;
+
+
+BEGIN
+
+END_DATA_BLOCK

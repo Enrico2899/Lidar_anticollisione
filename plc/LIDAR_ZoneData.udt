@@ -1,0 +1,18 @@
+TYPE "LIDAR_ZoneData"
+TITLE = Dettagli di una zona Zone Monitor (32 byte)
+VERSION : 0.1
+   STRUCT
+      Zone_Id : USInt;   // ID della zona sul sensore
+      Error_Flags : Byte;   // dati mancanti / bassa confidenza / zona oscurata
+      Trigger_Type : USInt;   // 1 = occupancy, 2 = vacancy
+      Trigger_Status : USInt;   // 1 = zona in allarme
+      Triggered_Frames : UDInt;   // frame consecutivi in allarme
+      Point_Count : UDInt;   // punti nella zona
+      Occlusion_Count : UDInt;   // punti sotto la distanza minima
+      Invalid_Count : UDInt;   // punti non validi
+      Min_Range_mm : UDInt;   // distanza minima dei punti nella zona [mm]
+      Mean_Range_mm : UDInt;   // distanza media [mm]
+      Max_Range_mm : UDInt;   // distanza massima [mm]
+   END_STRUCT;
+
+END_TYPE

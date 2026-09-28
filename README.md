@@ -80,6 +80,24 @@ se ne accorge e blocca. Allo stesso modo si può fissare `SENSOR_SERIAL`.
 
 ## DB di scambio (TIA Portal)
 
+In `plc/` ci sono i sorgenti pronti da importare, così non vanno scritti a
+mano gli offset:
+
+| File | Contenuto |
+|------|-----------|
+| `LIDAR_ZoneData.udt` | tipo di dati "LIDAR_ZoneData" (dettagli di una zona, 32 byte) |
+| `LIDAR_DB.db` | DB "LIDAR_DB" non ottimizzato, 540 byte |
+| `FB_LidarAnticollisione.scl` | heartbeat verso il PC, watchdog sul PC, consensi per zona |
+
+Importazione: nell'albero del progetto, sotto la CPU → **Sorgenti esterne** →
+"Aggiungi nuovo file esterno" → selezionare i tre file → tasto destro su
+ciascuno, **nell'ordine UDT, DB, FB** → "Genera blocchi dalla sorgente". Poi
+nelle proprietà di `LIDAR_DB` impostare il **numero** uguale a
+`PLC_DB_NUMBER` in `config.py` (o viceversa), e richiamare
+`FB_LidarAnticollisione` in OB1 con un suo DB di istanza. Un test
+(`tests/test_plc_sources.py`) verifica che gli offset dei sorgenti coincidano
+con quelli usati dall'app.
+
 DB **non ottimizzato** (Proprietà → Attributi → togliere "Accesso ottimizzato
 al blocco"), CPU con **"Consenti accesso PUT/GET"** abilitato
 (Proprietà CPU → Protezione e sicurezza → Meccanismi di collegamento).

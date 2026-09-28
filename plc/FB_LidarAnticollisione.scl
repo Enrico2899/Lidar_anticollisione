@@ -1,0 +1,62 @@
+FUNCTION_BLOCK "FB_LidarAnticollisione"
+TITLE = Heartbeat, watchdog e consensi del LiDAR anticollisione
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Da richiamare ad ogni ciclo (es. OB1) con un DB di istanza. Il LiDAR e' un
+// livello AGGIUNTIVO: Lidar_Fault va trattato come allarme/warning, la
+// protezione principale resta quella con gli encoder safety.
+   VAR_INPUT
+      Watchdog_Time : Time := T#300ms;   // tempo massimo senza variazioni di PC_Heartbeat
+   END_VAR
+
+   VAR_OUTPUT
+      PC_Alive : Bool;   // l'applicazione sul PC sta scrivendo il DB
+      Lidar_OK : Bool;   // PC_Alive AND System_OK
+      Lidar_Fault : Bool;   // NOT Lidar_OK -> allarme / warning all'operatore
+      Zone_Free : Array[0..15] of Bool;   // consenso per zona, forzato a 0 se Lidar non OK
+      Zone_Occupied : Array[0..15] of Bool;   // ostacolo rilevato con misura valida
+   END_VAR
+
+   VAR
+      lastPcHeartbeat : DInt;
+      wdTimer {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+      hbTimer {InstructionName := 'TON_TIME'; LibVersion := '1.0'} : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	// --- Heartbeat verso il PC: +1 ogni 100 ms ---
+	#hbTimer(IN := NOT #hbTimer.Q, PT := T#100ms);
+	IF #hbTimer.Q THEN
+	    IF "LIDAR_DB".PLC_Heartbeat >= 2147483647 THEN
+	        "LIDAR_DB".PLC_Heartbeat := 0;
+	    ELSE
+	        "LIDAR_DB".PLC_Heartbeat := "LIDAR_DB".PLC_Heartbeat + 1;
+	    END_IF;
+	END_IF;
+
+	// --- Watchdog sull'heartbeat del PC ---
+	IF "LIDAR_DB".PC_Heartbeat <> #lastPcHeartbeat THEN
+	    #lastPcHeartbeat := "LIDAR_DB".PC_Heartbeat;
+	    #wdTimer(IN := FALSE, PT := #Watchdog_Time);   // reset del timer
+	END_IF;
+	#wdTimer(IN := TRUE, PT := #Watchdog_Time);
+	#PC_Alive := NOT #wdTimer.Q;
+
+	// --- Stato complessivo e consensi ---
+	#Lidar_OK := #PC_Alive AND "LIDAR_DB".System_OK;
+	#Lidar_Fault := NOT #Lidar_OK;
+
+	FOR #i := 0 TO 15 DO
+	    #Zone_Free[#i] := #Lidar_OK AND "LIDAR_DB".Zone_Free[#i];
+	    #Zone_Occupied[#i] := #Lidar_OK AND "LIDAR_DB".Zone_Valid[#i] AND "LIDAR_DB".Zone_Triggered[#i];
+	END_FOR;
+
+	// Esempio d'uso (fuori da questo FB): rallentamento/stop se
+	// Zone_Occupied[x] (mascherando le colonne in base alla posizione del
+	// carroponte), allarme HMI se Lidar_Fault.
+END_FUNCTION_BLOCK
